@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>BSM Marketplace</title>
+<style>
+  body{margin:0;font-family:Arial;background:#f2f3f7;}
+
+  /* HEADER */
+  header{background:white;display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-bottom:2px solid #ddd;position:sticky;top:0;z-index:20;box-shadow:0 2px 5px #0002;}
+  .logo{font-size:24px;font-weight:bold;color:#0a2a43;}
+  .search input{width:260px;padding:8px;border-radius:6px;border:1px solid #aaa;}
+
+  /* AUTO CATEGORY SYSTEM */
+  .category-bar{display:flex;gap:10px;overflow-x:auto;padding:10px;background:white;border-bottom:2px solid #ddd;}
+  .cat-btn{padding:8px 14px;background:#0a2a43;color:white;border-radius:20px;white-space:nowrap;cursor:pointer;transition:.3s;}
+  .cat-btn:hover{background:#FFD033;color:#000;font-weight:bold;}
+
+  /* SLIDER */
+  .slider{width:100%;height:200px;overflow:hidden;position:relative;margin-bottom:10px;}
+  .slides{display:flex;width:300%;animation:slide 12s infinite ease-in-out;}
+  .slides img{width:100%;object-fit:cover;}
+  @keyframes slide{0%{transform:translateX(0);}33%{transform:translateX(-100%);}66%{transform:translateX(-200%);}100%{transform:translateX(0);}}
+
+  /* PRODUCT GRID */
+  .products{display:grid;gap:12px;padding:10px;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));}
+  @media(min-width:900px){.products{grid-template-columns:repeat(5,1fr);} }
+  @media(max-width:600px){.products{grid-template-columns:repeat(2,1fr);} }
+  .product{background:white;border-radius:10px;overflow:hidden;box-shadow:0 0 5px #ccc;cursor:pointer;transition:.3s;}
+  .product:hover{transform:scale(1.03);} 
+  .product img{width:100%;aspect-ratio:1/1;object-fit:cover;}
+  .product p{text-align:center;padding:8px;font-weight:bold;color:#333;}
+
+  /* SLIDER INSIDE PRODUCT DETAIL */
+  .inner-slider{position:relative;width:100%;overflow:hidden;border-radius:10px;}
+  .inner-slides{display:flex;transition:.4s;}
+  .inner-slides img{width:100%;}
+  .arrow{position:absolute;top:50%;transform:translateY(-50%);font-size:28px;background:#0007;color:white;padding:5px 10px;border-radius:50%;cursor:pointer;}
+  .arrow.left{left:10px;}
+  .arrow.right{right:10px;}
+
+  /* FLOATING BUTTONS */
+  .floating-btns{position:fixed;right:15px;bottom:80px;display:flex;flex-direction:column;gap:10px;z-index:30;}
+  .floating-btns a{background:none;padding:0;border-radius:0;box-shadow:none;}
+
+  /* MODALS */
+  #detailModal,#videoModal{position:fixed;top:0;left:0;width:100%;height:100%;background:#0009;display:none;align-items:center;justify-content:center;z-index:50;}
+  #detailBox,#videoBox{background:white;width:90%;max-width:500px;padding:15px;border-radius:12px;}
+
+  /* FOOTER */
+  footer{background:white;margin-top:20px;padding:20px;text-align:center;border-top:2px solid #ddd;}
+  footer a{color:#0a2a43;text-decoration:none;font-weight:bold;}
+
+  /* BOTTOM MENU */
+  .bottom-menu{position:fixed;bottom:0;left:0;width:100%;display:flex;justify-content:space-around;background:white;border-top:2px solid #ddd;padding:8px 0;z-index:40;box-shadow:0 -2px 5px #0002;}
+  .bottom-menu div{text-align:center;font-size:14px;color:#0a2a43;cursor:pointer;} 
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <img src="https://i.imgur.com/bcaQ4In.png" alt="Logo BSM" style="height:40px; object-fit:contain;" />
+  </div>
+
+  <div class="search">
+    <input type="text" placeholder="Cari produk..." />
+  </div>
+</header>
+
+<!-- CATEGORY AUTO GENERATED -->
+<div class="category-bar" id="categoryBar"></div>
+
+<!-- SLIDER -->
+<div class="slider">
+  <div class="slides">
+    <img src="https://via.placeholder.com/1000x300?text=Promo+1" />
+    <img src="https://via.placeholder.com/1000x300?text=Promo+2" />
+    <img src="https://via.placeholder.com/1000x300?text=Promo+3" />
+  </div>
+</div>
+
+<div class="products" id="productList"></div>
+
+<!-- FLOATING BUTTONS -->
+<div class="floating-btns">
+  <a href="https://wa.me/6287798825962" target="_blank">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" style="width:40px;height:40px;" />
+  </a>
+  <a href="https://www.tiktok.com/@bsm_box" target="_blank">
+    <img src="https://static.vecteezy.com/system/resources/thumbnails/031/737/223/small/tiktok-logo-tiktok-app-social-media-icons-free-png.png" style="width:40px;height:40px;" />
+  </a>
+</div>
+
+<!-- PRODUCT DETAIL -->
+<div id="detailModal">
+  <div id="detailBox">
+    <h3 id="detailName"></h3>
+      <p id="detailPrice" style="font-size:18px;font-weight:bold;color:#e63946;margin-top:4px;"></p>
+
+
+    <!-- SLIDER INSIDE MODAL -->
+    <div class="inner-slider">
+      <div class="inner-slides" id="innerSlides"></div>
+      <div class="arrow left" onclick="prevImg()">❮</div>
+      <div class="arrow right" onclick="nextImg()">❯</div>
+    </div>
+
+    <p id="detailDesc"></p>
+    <a id="buyBtn" href="#" target="_blank" style="display:block;margin-top:10px;background:#FFD033;padding:10px;text-align:center;border-radius:8px;color:#000;font-weight:bold;">Beli Sekarang</a>
+
+    <button onclick="closeDetail()" style="margin-top:10px;width:100%;padding:10px;border:none;background:#0a2a43;color:white;border-radius:8px;">Tutup</button>
+  </div>
+</div>
+
+<!-- VIDEO POPUP -->
+<div id="videoModal">
+  <div id="videoBox">
+    <video id="promoVideo" width="100%" controls autoplay>
+      <source src="https://i.imgur.com/dJh9DJB.mp4" type="video/mp4">
+    </video>
+    <button onclick="closeVideo()" style="margin-top:10px;width:100%;padding:10px;border:none;background:#0a2a43;color:white;border-radius:8px;">Tutup</button>
+  </div>
+</div>
+
+<footer>
+  <h3>Tentang Toko Kami</h3>
+  <p><b>BSM BOX</b><br>No. Telp: 087798825962<br>Alamat: Lokasi BSM</p>
+  <a href="https://maps.app.goo.gl/qvHHKhoLPQG78KdS7" target="_blank">Lihat di Google Maps</a>
+</footer>
+
+<!-- Bottom Menu -->
+<div class="bottom-menu">
+  <div onclick="scrollToTop()">Home</div>
+
+  <a href="https://linktr.ee/berkahsetia" target="_blank" style="color:white; text-decoration:none;">
+    <div>Chat</div>
+  </a>
+
+  <div onclick="openVideo()">Video</div>
+</div>
+
+<script>
+  /* MULTI IMAGE PRODUCT LIST */
+  const products=[
+{
+  cat: "EZY",
+  name: "EZY 8 Liter",
+  price:"Rp 30.000",
+  images: [
+    "https://i.imgur.com/PMDSvYw.jpeg",
+    "https://i.imgur.com/KIn4T8D.jpeg",
+    "https://i.imgur.com/Kh1xQSZ.jpeg",
+  ],
+  desc: "Brand Ezy ukuran 95 Liter dengan Roda dan struktur penguat bawah, BPA FREE Aman untuk makanan.",
+  buy: "https://linktr.ee/berkahsetia"
+},
+    {cat:"EZY",name:"EZY 10 Liter",price:"Rp 24.000",images:["https://down-id.img.susercontent.com/file/id-11134207-81ztd-meo1oa0relmo07@resize_w900_nl.jpg","	https://down-id.img.susercontent.com/file/id-11134207-81ztl-meo1oa0xor2ca7.jpg","https://down-id.img.susercontent.com/file/id-11134207-81ztk-meo1oa0rg074e1.jpg"],desc:"ukuran 10 Liter dari Ezy Vindo International, Bpa Free, dengan Handle dan pastinya kualitas terjamin",buy:"https://linktr.ee/berkahsetia"},
+    {cat:"EZY",name:"EZY 15 LITER",price:"Rp 31.000",images:["https://i.imgur.com/jvlUOBQ.jpeg","https://i.imgur.com/pR9IT0E.jpeg"],desc:"Ukuran 15 Liter dengan Handle dari Brand EZY Vindo International, BPA FREE, Aman untuk Makanan.",buy:"https://linktr.ee/berkahsetia"},
+    {cat:"EZY",name:"EZY 18 Liter",price:"Rp 44.000",images:["https://i.imgur.com/UpDOFcj.jpeg","https://i.imgur.com/r99uJpq.jpeg"],desc:"Brand Ezy Ukuran 18 Liter dengan Handle dan struktur penguat bawah hexagonal, BPA FREE Aman untuk Makanan.",buy:"https://linktr.ee/berkahsetia"},
+    {
+  cat: "EZY",
+  name: "EZY 25 Liter",
+  price:"Rp 47.000",
+  images: [
+    "https://i.imgur.com/d5gd9lF.jpeg",
+    "https://i.imgur.com/ssf1BbG.jpeg",
+    "https://i.imgur.com/Kl6hIaN.jpeg"
+  ],
+  desc: "Brand Ezy ukuran 25 Liter dengan handle dan struktur penguat bawah hexagonal, BPA FREE Aman untuk makanan.",
+  buy: "https://linktr.ee/berkahsetia"
+},
+{
+  cat: "EZY",
+  name: "EZY 30 Liter",
+  price:"Rp 42.000",
+  images: [
+    "https://i.imgur.com/SuK8wi3.jpeg",
+    "https://i.imgur.com/RAM6ImB.jpeg",
+    "https://i.imgur.com/58Uy3F4.jpeg"
+  ],
+  desc: "Brand Ezy ukuran 30 Liter dengan BPA FREE Aman untuk makanan.",
+  buy: "https://linktr.ee/berkahsetia"
+},
+{
+  cat: "EZY",
+  name: "EZY 35 Liter",
+  price:"Rp 50.000",
+  images: [
+    "https://i.imgur.com/wfFuGan.jpeg",
+    "https://i.imgur.com/mDTxgbH.jpeg",
+    "https://i.imgur.com/mDTxgbH.jpeg"
+  ],
+  desc: "Brand Ezy ukuran 35 Liter dengan roda dan struktur penguat bawah hexagonal, BPA FREE Aman untuk makanan.",
+  buy: "https://linktr.ee/berkahsetia"
+},
+{
+  cat: "EZY",
+  name: "EZY 37 Liter",
+  price:"Rp 41.000",
+  images: [
+    "https://i.imgur.com/x44T3JI.jpeg",
+    "https://i.imgur.com/2UtOWIg.jpeg",
+    "https://i.imgur.com/UHQ8fJq.jpeg"
+  ],
+  desc: "Brand Ezy ukuran 37 Liter dengan warna hitam dan struktur penguat bawah hexagonal, BPA FREE Aman untuk makanan.",
+  buy: "https://linktr.ee/berkahsetia"
+},
+{
+  cat: "EZY",
+  name: "EZY 45 Liter",
+  price:"Rp 58.000",
+  images: [
+    "https://i.imgur.com/JnmHiLQ.jpeg",
+    "https://i.imgur.com/9NNhDcp.jpeg",
+    "https://i.imgur.com/SvMJZO7.jpeg"
+  ],
+  desc: "Brand Ezy ukuran 45 Liter dengan Roda dan struktur penguat bawah hexagonal, BPA FREE Aman untuk makanan.",
+  buy: "https://linktr.ee/berkahsetia"
+},
+{
+  cat: "EZY",
+  name: "EZY 52 Liter",
+  price:"Rp 68.000",
+  images: [
+    "https://i.imgur.com/Hi013IH.jpeg",
+    "https://i.imgur.com/bOKORYx.jpeg",
+    "https://i.imgur.com/OVH4oyo.jpeg"
+  ],
+  desc: "Brand Ezy ukuran 52 Liter dengan Roda dan struktur penguat bawah, BPA FREE Aman untuk makanan.",
+  buy: "https://linktr.ee/berkahsetia"
+},
+{
+  cat: "EZY",
+  name: "EZY 75 Liter",
+  price:"Rp 90.000",
+  images: [
+    "https://i.imgur.com/iTiKSQu.jpeg",
+    "https://i.imgur.com/ZuVoIss.jpeg",
+    "https://i.imgur.com/lU0yxiS.jpeg",
+  ],
+  desc: "Brand Ezy ukuran 75 Liter dengan Roda dan struktur penguat bawah, BPA FREE Aman untuk makanan.",
+  buy: "https://linktr.ee/berkahsetia"
+},
+{
+  cat: "EZY",
+  name: "EZY 78 Liter",
+  price:"Rp 98.000",
+  images: [
+    "https://i.imgur.com/5kWNQiZ.jpeg",
+    "https://i.imgur.com/9pVQLLa.jpeg",
+    "https://i.imgur.com/lAgcMLf.jpeg",
+  ],
+  desc: "Brand Ezy ukuran 78 Liter dengan Roda dan struktur penguat bawah Hexagonal, BPA FREE Aman untuk makanan.",
+  buy: "https://linktr.ee/berkahsetia"
+},
+{
+  cat: "EZY",
+  name: "EZY 82 Liter",
+  price:"Rp 105.000",
+  images: [
+    "https://i.imgur.com/saB5wRD.jpeg",
+    "https://i.imgur.com/0fHHUII.jpeg",
+    "https://i.imgur.com/WitYZC2.jpeg",
+  ],
+  desc: "Brand Ezy ukuran 82 Liter dengan Roda dan struktur penguat bawah, BPA FREE Aman untuk makanan.",
+  buy: "https://linktr.ee/berkahsetia"
+},
+{
+  cat: "EZY",
+  name: "EZY 95 Liter",
+  price:"Rp 122.000",
+  images: [
+    "https://i.imgur.com/jrtLpC2.jpeg",
+    "https://i.imgur.com/nG01m2A.jpeg",
+    "https://i.imgur.com/IWjLotk.jpeg",
+  ],
+  desc: "Brand Ezy ukuran 95 Liter dengan Roda dan struktur penguat bawah, BPA FREE Aman untuk makanan.",
+  buy: "https://linktr.ee/berkahsetia"
+},
+{
+  cat: "EZY",
+  name: "EZY 108 Liter",
+  price:"Rp 128.000",
+  images: [
+    "https://i.imgur.com/EVxtUAk.jpeg",
+    "https://i.imgur.com/3kgBNzA.jpeg",
+    "https://i.imgur.com/5yfgEbs.jpeg",
+  ],
+  desc: "Brand Ezy ukuran 108 Liter dengan Roda dan struktur penguat bawah, BPA FREE Aman untuk makanan.",
+  buy: "https://linktr.ee/berkahsetia"
+},
+{
+  cat: "EZY",
+  name: "EZY 130 Liter",
+  price:"Rp 144.000",
+  images: [
+    "https://i.imgur.com/eCsVwI6.jpeg",
+    "https://i.imgur.com/evXnqJ0.jpeg",
+    "https://i.imgur.com/tFtQOPd.jpeg",
+  ],
+  desc: "Brand Ezy ukuran 130 Liter dengan Roda dan struktur penguat bawah, BPA FREE Aman untuk makanan.",
+  buy: "https://linktr.ee/berkahsetia"
+},
+{
+  cat: "EZY",
+  name: "EZY 150 Liter",
+  price:"Rp 172.000",
+  images: [
+    "https://i.imgur.com/iOZABDr.jpeg",
+    "https://i.imgur.com/iaQXG0Q.jpeg",
+    "https://i.imgur.com/bYyXem8.jpeg",
+  ],
+  desc: "Brand Ezy ukuran 75 Liter dengan Roda dan struktur penguat bawah, BPA FREE Aman untuk makanan.",
+  buy: "https://linktr.ee/berkahsetia"
+},
+{
+  cat: "EZY",
+  name: "EZY VERONA 20 LITER",
+  price:"Rp 90.000",
+  images: [
+    "https://down-id.img.susercontent.com/file/id-11134207-7qul9-ljfqsqhiqxjrd2.jpg",
+    "https://i.imgur.com/RL0xJAW.jpeg",
+  ],
+  desc: "Brand Ezy ukuran 20 Liter dengan Dispenser dan tatakan, BPA FREE Aman untuk makanan.",
+  buy: "https://linktr.ee/berkahsetia"
+},
+{
+  cat: "EZY",
+  name: "EZY VERONA 30 LITER",
+  price:"Rp 110.000",
+  images: [
+    "https://i.imgur.com/vB8XfrV.jpeg",
+    "https://i.imgur.com/YW2d75S.jpeg",
+    "https://i.imgur.com/nXkPkZE.jpeg",
+  ],
+  desc: "Brand Ezy ukuran 30 Liter dengan Dispenser & Tatatkan, BPA FREE Aman untuk makanan.",
+  buy: "https://linktr.ee/berkahsetia"
+},
+{
+  cat: "EZY",
+  name: "EZY GENOA 20 LITER",
+  price:"Rp 77.000",
+  images: [
+    "https://i.imgur.com/ol5v7Ac.jpeg",
+    "https://i.imgur.com/yyXf3Dv.jpeg",
+  ],
+  desc: "Brand Ezy ukuran 30 Liter dengan Gayung & Tatatkan, BPA FREE Aman untuk makanan.",
+  buy: "https://linktr.ee/berkahsetia"
+},
+{
+  cat: "EZY",
+  name: "EZY GENOA 30 LITER",
+  price:"Rp 90.000",
+  images: [
+    "https://i.imgur.com/9S74eVs.jpeg",
+    "https://i.imgur.com/QNdbLrZ.jpeg",
+    "https://i.imgur.com/QoxizvS.jpeg",
+  ],
+  desc: "Brand Ezy ukuran 30 Liter dengan GAYUNG, BPA FREE Aman untuk makanan.",
+  buy: "https://linktr.ee/berkahsetia"
+},
+{
+  cat: "EZY",
+  name: "EZY MILANO KOTAK",
+  price:"Rp 25.000",
+  images: [
+    "https://img.lazcdn.com/g/p/be5a0a60d23dc1de7c3473c120cfe6f8.jpg_720x720q80.jpg",
+    "https://img.lazcdn.com/g/p/1fbf07fb55641cb5f28654c9e877f773.jpg_720x720q80.jpg",
+    "https://img.lazcdn.com/g/p/035514f0dbcf7c1f3fa1981cf9911b0c.jpg_720x720q80.jpg",
+    "https://img.lazcdn.com/g/p/176550e65c0dae97f96e78ebaeaf4819.jpg_720x720q80.jpg",
+  ],
+  desc: "Brand Ezy ukuran 24 Donat, 12 Donat & 9 donat, BPA FREE Aman untuk makanan.",
+  buy: "https://linktr.ee/berkahsetia"
+},
+{
+  cat: "EZY",
+  name: "EZY Botol Scutari 1,3 Liter",
+  price:"Rp 12.000",
+  images: [
+    "https://i.imgur.com/cK5hrOj.jpeg",
+    "https://i.imgur.com/KU3nwXq.jpeg",
+    "https://i.imgur.com/25KhjR7.jpeg",
+  ],
+  desc: "Brand Ezy ukuran 1,3 Liter dengan tutup, BPA FREE Aman untuk makanan.",
+  buy: "https://linktr.ee/berkahsetia"
+},
+{
+  cat: "EZY",
+  name: "EZY TERMOS NASI",
+  price:"Rp 90.000",
+  images: [
+    "https://i.imgur.com/DHX5GAd.jpeg",
+    "https://i.imgur.com/VAoloO1.jpeg",
+    "https://i.imgur.com/NYqRNVI.jpeg",
+  ],
+  desc: "Brand Ezy ukuran 10, 17, 21, 28 & 30 Liter dengan tutup, BPA FREE, Tahan Panas & Dingin Aman untuk makanan.",
+  buy: "https://linktr.ee/berkahsetia"
+},
+{
+  cat: "EZY",
+  name: "EZY TEMPAT SAMPAH KURIN",
+  price:"Rp 20.000",
+  images: [
+    "https://i.imgur.com/zfRWS02.jpeg",
+    "https://i.imgur.com/cwlqYbU.jpeg",
+    "https://i.imgur.com/RzdRor7.jpeg",
+  ],
+  desc: "Brand Ezy ukuran 10,17 & 20 Liter dengan tutup",
+  buy: "https://linktr.ee/berkahsetia"
+},
+{
+  cat: "AKAKO",
+  name: "KARBON BOX 12",
+  images: [
+    "https://i.imgur.com/d5gd9lF.jpeg",
+    "https://i.imgur.com/ssf1BbG.jpeg",
+    "https://i.imgur.com/Kl6hIaN.jpeg"
+  ],
+  desc: "Brand AKAKO ukuran 7 Liter dengan handle Walau ukuran kecil, produk ini kuat dan kokoh.",
+  buy: "https://linktr.ee/berkahsetia"
+},
+
+    {cat:"TABITHA",name:"TABITHA Organizer",images:["https://via.placeholder.com/500?text=TAB1","https://via.placeholder.com/500?text=TAB1B"],desc:"Organizer cantik.",buy:"https://wa.me/6287798825962"},
+    {cat:"TABITHA",name:"TABITHA Premium Set",images:["https://via.placeholder.com/500?text=TAB2","https://via.placeholder.com/500?text=TAB2B","https://via.placeholder.com/500?text=TAB2C"],desc:"Set box premium.",buy:"https://wa.me/6287798825962"},
+  ];
+
+  /* GENERATE CATEGORY */
+  const cats=[...new Set(products.map(p=>p.cat))];
+  const catBar=document.getElementById('categoryBar');
+  cats.forEach(c=>{
+    const b=document.createElement('div');
+    b.className='cat-btn';
+    b.innerText=c;
+    b.onclick=()=>filterCat(c);
+    catBar.appendChild(b);
+  });
+
+  /* RENDER PRODUCTS */
+  const list=document.getElementById('productList');
+  function renderProducts(data){
+    list.innerHTML='';
+    data.forEach((p,i)=>{
+      const box=document.createElement('div');
+      box.className='product';
+      box.onclick=()=>openDetail(i);
+      box.innerHTML=`
+  <img src="${p.images[0]}">
+  <p>${p.name}</p>
+  <p class="price">${p.price}</p>
+`;
+      list.appendChild(box);
+    });
+  }
+  renderProducts(products);
+
+  function filterCat(c){renderProducts(products.filter(p=>p.cat===c));}
+
+  /* DETAIL POPUP */
+  let current=0, imgIndex=0;
+  function openDetail(i){
+    current=i;
+    imgIndex=0;
+    document.getElementById('detailName').innerText=products[i].name;
+    document.getElementById('detailPrice').innerText = products[i].price;
+    document.getElementById('detailDesc').innerText=products[i].desc;
+    document.getElementById('buyBtn').href=products[i].buy;
+    loadImages();
+    document.getElementById('detailModal').style.display='flex';
+  }
+  function loadImages(){
+    const wrap=document.getElementById('innerSlides');
+    wrap.style.transform=`translateX(-${imgIndex*100}%)`;
+    wrap.innerHTML=products[current].images.map(img=>`<img src='${img}'>`).join('');
+  }
+  function nextImg(){if(imgIndex<products[current].images.length-1)imgIndex++;loadImages();}
+  function prevImg(){if(imgIndex>0)imgIndex--;loadImages();}
+  function closeDetail(){document.getElementById('detailModal').style.display='none';}
+
+  /* VIDEO */
+  function openVideo(){document.getElementById('videoModal').style.display='flex';document.getElementById('promoVideo').play();}
+  function closeVideo(){document.getElementById('videoModal').style.display='none';document.getElementById('promoVideo').pause();}
+
+  function scrollToTop(){window.scrollTo({top:0,behavior:"smooth"});}
+</script>
+
