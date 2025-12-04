@@ -153,14 +153,23 @@
 </footer>
 
 <!-- Bottom Menu -->
-<div class="bottom-menu">
-  <div onclick="scrollToTop()">Home</div>
+<div class="bottom-menu" style="position:fixed;bottom:0;left:0;width:100%;display:flex;justify-content:space-around;background:white;border-top:2px solid #ddd;padding:8px 0;z-index:40;">
+  
+  <div onclick="scrollToTop()" style="text-align:center;font-size:13px;color:#0a2a43;cursor:pointer;display:flex;flex-direction:column;align-items:center;">
+    <img src="https://cdn-icons-png.flaticon.com/512/1946/1946488.png" style="width:22px;height:22px;margin-bottom:3px;">
+    Home
+  </div>
 
-  <a href="https://linktr.ee/berkahsetia" target="_blank" style="color:white; text-decoration:none;">
-    <div>Chat</div>
-  </a>
+  <div onclick="window.open('https://linktr.ee/berkahsetia','_blank')" style="text-align:center;font-size:13px;color:#0a2a43;cursor:pointer;display:flex;flex-direction:column;align-items:center;">
+    <img src="https://cdn-icons-png.flaticon.com/512/3524/3524636.png" style="width:22px;height:22px;margin-bottom:3px;">
+    INFO KAMI
+  </div>
 
-  <div onclick="openVideo()">Video</div>
+  <div onclick="openVideo()" style="text-align:center;font-size:13px;color:#0a2a43;cursor:pointer;display:flex;flex-direction:column;align-items:center;">
+    <img src="https://cdn-icons-png.flaticon.com/512/727/727245.png" style="width:22px;height:22px;margin-bottom:3px;">
+    Video
+  </div>
+
 </div>
 
 <script>
